@@ -1,6 +1,9 @@
 # Smart Personal Chatbot using FastAPI and Gemini API
 # api AIzaSyANr0kkCj6_dnA6j7n5niYdjDeKPNBh-zI
 
+# import port variable from env PORT
+import os
+PORT = os.getenv("PORT", 8080)
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -39,4 +42,4 @@ async def chat_endpoint(request: ChatRequest):
 
 # Run the server
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
