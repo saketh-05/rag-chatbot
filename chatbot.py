@@ -4,7 +4,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 import google.generativeai as genai
-import uvicorn
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -35,7 +34,3 @@ async def chat_endpoint(request: ChatRequest):
         return {"response": response.text}
     except Exception as e:
         return {"error": str(e)}
-
-# Run the server
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
