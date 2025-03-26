@@ -3,7 +3,10 @@
 
 # import port variable from env PORT
 import os
-PORT = os.getenv("PORT", 8080)
+PORT = os.getenv("PORT")
+
+if PORT != 8080:
+    PORT = 8080
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -42,4 +45,4 @@ async def chat_endpoint(request: ChatRequest):
 
 # Run the server
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
+    uvicorn.run(app, port=PORT)
