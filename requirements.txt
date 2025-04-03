@@ -1,0 +1,9 @@
+langchain
+langchain-ollama
+langchain-chroma
+pandas
+google-cloud-texttospeech
+google-cloud-speech
+numpy
+sounddevice
+pydub
