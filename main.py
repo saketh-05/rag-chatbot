@@ -1,4 +1,4 @@
-from langchain_ollama.llms import OllamaLLM
+# from langchain_ollama.llms import OllamaLLM     --trying to manually connect with ollama serve 
 from langchain_core.prompts import ChatPromptTemplate
 from vector import retriever
 from google.cloud import texttospeech, speech
@@ -7,6 +7,10 @@ import random
 import sounddevice as sd
 import numpy as np
 from pydub import AudioSegment
+
+import requests
+import json
+import traceback
 
 '''
 Not required for now - 
@@ -29,6 +33,28 @@ def generate_timestamp_unique_id():
     random_no = random.randint(1000, 9999)
     return f"{timestamp}{random_no}"
 
+def getOllamaResponse(data):
+#     if isinstance(data["episode_list"], list):
+#         data["episode_list"] = ", ".join(str(ep) for ep in data["episode_list"])
+        
+    url = "http://localhost:11434/api/generate"
+    
+    mod_data = {
+        "model": "gemma3:4b",
+        "prompt": prompt.format(**data),
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "top_k": 40,
+        "max_tokens": 250,
+        "stream": False
+    }
+    
+    response = requests.post(url, json=mod_data)
+    if response.status_code == 200:
+        response_data = response.json()
+        return response_data["response"]
+    
+    
 #To decode timestamp to datetime
 # date_obj = datetime.fromtimestamp(timestamp)
 # formatted_date = date_obj.strftime("%d/%m/%Y %H:%M:%S")
@@ -36,7 +62,7 @@ def generate_timestamp_unique_id():
 ttsclient = texttospeech.TextToSpeechClient()
 sttclient = speech.SpeechClient()
 
-model = OllamaLLM(model="mistral")
+# model = OllamaLLM(model="mistral")
 # model = OllamaLLM(model="deepseek-r1:1.5b")
 # model = OllamaLLM(model="deepseek-r1:7b")
 
@@ -46,11 +72,15 @@ You are an expert in answering questions about the One Piece episodes
 Here are some One Piece episodes: {episode_list}
 
 Here is the question to answer: {question}
+
+Answer directly what was asked. Don't add any extra information.
+
+If you don't know the answer, say "I don't know".
 """
 
 prompt = ChatPromptTemplate.from_template(template)
 
-chain = prompt | model
+# chain = prompt | model
 
 i=1
 
@@ -76,7 +106,7 @@ while True:
         response = sttclient.recognize(config=config, audio=audio)
         
         question = ""
-        print("Recognized text:")
+
         for result in response.results:
             print(result.alternatives[0].transcript)
             question = result.alternatives[0].transcript
@@ -89,8 +119,10 @@ while True:
         
         flag = input("Is this the correct question? (y/n): ")
         if flag == "n":
-            print("Exiting...")
-            break
+            print("Please edit the prompt and try again.")
+            question = input("Enter the correct question: ")
+            print(f"Question: {question}")
+            
         
         episode = retriever.invoke(question)
         
@@ -101,8 +133,13 @@ while True:
             print("Exiting...")
             break
         
-        result = chain.invoke({"episode_list": [episode], "question": question})
-        print(result)
+        result = getOllamaResponse({"episode_list": [episode], "question": question})
+        
+        print("result : ", result)
+        
+        # result_with_think = result_with_think.split("</think>")
+        # result = result_with_think[1].strip()
+        # print(f"Formatted Result: {result}")
         
         synthesis_text = texttospeech.SynthesisInput(text=result)
         
@@ -117,13 +154,14 @@ while True:
         response = ttsclient.synthesize_speech(
             input=synthesis_text, voice=voice, audio_config=audio_config
         )
+        
         unique_file_name = generate_timestamp_unique_id()
         
-        with open(f"output-audio/output{unique_file_name}-{i}.mp3", "wb") as out:
+        with open(f"local-output-audio/output{unique_file_name}-{i}.mp3", "wb") as out:
             out.write(response.audio_content)
             print(f'Audio content written to file "output{unique_file_name}-{i}.mp3"')
         
-        output_audio_file = AudioSegment.from_mp3(f"output-audio/output{unique_file_name}-{i}.mp3")
+        output_audio_file = AudioSegment.from_mp3(f"local-output-audio/output{unique_file_name}-{i}.mp3")
         sample_rate = output_audio_file.frame_rate
         output_audio = np.array(output_audio_file.get_array_of_samples(), dtype=np.int16)
         
@@ -134,7 +172,8 @@ while True:
         sd.wait()
         
         i += 1
-        
     except Exception as e:
         print(f"An error occurred: {e}")
+        print("Traceback:")
+        traceback.print_exc()
         break

@@ -8,7 +8,7 @@ df = pd.read_csv("onepiece-epdata.csv")
 
 embeddings = OllamaEmbeddings(model="mxbai-embed-large")
 
-db_location = "'/chroma_langchain_db"
+db_location = "./chroma_langchain_db"
 
 add_documents = not os.path.exists(db_location)
 
@@ -18,17 +18,15 @@ if(add_documents):
     
     for i,row in df.iterrows():
         document = Document(
-            page_content = str(row["episode"]) + " " + row["name"],
+            page_content = "Episode number: " + str(row["episode"]) + "Episode name: " + row["name"] + "Episode rating: " + str(row["average_rating"]),
             metadata = {
                 "episode": row["episode"],
                 "name": row["name"],
                 "total_votes": row["total_votes"],
-                "air_year": row["start"],
                 "rating": row["average_rating"],
-            },
-            id=str(i)
+            }
         )
-        ids.append(str(i))
+        ids.append(str(row["episode"]))
         documents.append(document)
         
 
@@ -40,8 +38,7 @@ vector_store = Chroma(
 
 if add_documents:
     vector_store.add_documents(documents=documents, ids=ids)
-    
-    
+
 retriever = vector_store.as_retriever(
     search_kwargs={"k" : 5}
 )

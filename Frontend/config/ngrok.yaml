@@ -1,0 +1,8 @@
+version: 3
+agent:
+  authtoken: 2vKp8rrMaE0erAh9CvyOe2kzNf9_5xhoe3uHEZUCdoRohQh5E
+endpoints:
+  - name: rag-voicebot
+    url: fairly-assured-loon.ngrok-free.app
+    upstream:
+      url: 3000
