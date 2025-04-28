@@ -7,3 +7,5 @@ google-cloud-speech
 numpy
 sounddevice
 pydub
+fastapi
+uvicorn

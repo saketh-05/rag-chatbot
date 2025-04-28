@@ -94,11 +94,24 @@ export default function Home() {
     handleNewMessage(input, 'user');
     setInput('');
 
-    // Simulate AI response
-    setTimeout(() => {
-      handleNewMessage("Thank you for your message! This is a demo response.", 'assistant');
+    //fetch response from the server
+    try {
+      const textInput = encodeURIComponent(input);
+      const response = await fetch(`http://127.0.0.1:8000/ask-question?question=${textInput}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!response.ok) throw new Error('Network response was not ok');
+
+      const data = await response.json();
+      handleNewMessage(data.result, 'assistant');
+    } catch (error) {
+      console.error('Error fetching response:', error);
+      handleNewMessage('An error occurred while processing your request.', 'assistant');
+    } finally {
       setIsProcessing(false);
-    }, 1000);
+    }
   };
 
   return (
