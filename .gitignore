@@ -1,2 +1,4 @@
 venv
 local-output-audio
+__pycache__
+chroma_language_model

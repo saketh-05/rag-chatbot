@@ -93,12 +93,11 @@ prompt = ChatPromptTemplate.from_template(template)
 
 # chain = prompt | model
 
-i=1
-
 def mainProgramOnly():
     '''
     This function is used to run the main program. It will take the input from the user and return the output from the model.
     '''      
+    i=1
     while True: 
         try:
             print("\n\n---------------------------------------")
@@ -132,28 +131,28 @@ def mainProgramOnly():
             
             print(f"Question: {question}")
             
-            flag = input("Is this the correct question? (y/n): ")
-            if flag == "n":
-                print("Please edit the prompt and try again.")
-                question = input("Enter the correct question: ")
-                print(f"Question: {question}")
+            # flag = input("Is this the correct question? (y/n): ")
+            # if flag == "n":
+            #     print("Please edit the prompt and try again.")
+            #     question = input("Enter the correct question: ")
+            #     print(f"Question: {question}")
                 
             
             episode = retriever.invoke(question)
             
             print(f"Episode retrieved: {episode}")
             
-            flag2 = input("Is this the correct episode? (y/n): ")
-            if flag2 == "n":
-                print("Exiting...")
-                break
+            # flag2 = input("Is this the correct episode? (y/n): ")
+            # if flag2 == "n":
+            #     print("Exiting...")
+            #     break
             
             result = getOllamaResponse({"episode_list": [episode], "question": question})
             
-            print("result : ", result)
+            # print("result : ", result)
             
-            # result_with_think = result_with_think.split("</think>")
-            # result = result_with_think[1].strip()
+            result_with_think = result.split("</think>")
+            result = result_with_think[1].strip()
             # print(f"Formatted Result: {result}")
             
             synthesis_text = texttospeech.SynthesisInput(text=result)
@@ -201,7 +200,7 @@ def textResponse(text):
     
     episode = retriever.invoke(text)
     
-    print(f"Episode retrieved: {episode}")
+    print(f"Episode context retrieved: {episode}")
     
     result = getOllamaResponse({"episode_list": [episode], "question": text})
     
@@ -223,7 +222,7 @@ async def read_question(question: str):
         question = question.strip()
         print("Question: ", question)
         result = textResponse(question)
-        print("Result: ", result)
+        # print("Result: ", result)
         return {"result": result}
     except Exception as e:
         print(f"An error occurred: {e}")
